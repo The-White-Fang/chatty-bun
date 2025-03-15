@@ -1,69 +1,86 @@
-# Welcome to your Lovable project
 
-## Project info
+# Real-time Chat Application
 
-**URL**: https://lovable.dev/projects/157b056b-03dc-48ba-8af0-a7710707b685
+A real-time chat application built with React, TypeScript, and Bun's WebSocket server implementation.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- Real-time messaging using WebSocket
+- User presence tracking (join/leave notifications)
+- Username customization
+- Persistent message history (server-side, up to 500 messages)
+- Modern UI with dark/light mode support
 
-**Use Lovable**
+## Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/157b056b-03dc-48ba-8af0-a7710707b685) and start prompting.
+This project requires [Bun](https://bun.sh) to be installed on your system.
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installing Bun
 
-**Use your preferred IDE**
+```bash
+# For macOS, Linux, and WSL
+curl -fsSL https://bun.sh/install | bash
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# For Windows (via PowerShell)
+powershell -c "irm bun.sh/install.ps1 | iex"
 ```
 
-**Edit a file directly in GitHub**
+## Getting Started
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd <repository-directory>
+   ```
 
-**Use GitHub Codespaces**
+2. Install dependencies:
+   ```bash
+   bun install
+   ```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+3. Start the WebSocket server:
+   ```bash
+   bun run src/server/index.ts
+   ```
 
-## What technologies are used for this project?
+4. In a separate terminal, start the React development server:
+   ```bash
+   bun run dev
+   ```
 
-This project is built with .
+5. Open your browser and navigate to:
+   ```
+   http://localhost:8080
+   ```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Project Structure
 
-## How can I deploy this project?
+- `/src/server` - WebSocket server implementation
+- `/src/components` - React UI components
+- `/src/context` - React context for state management
+- `/src/hooks` - Custom React hooks
+- `/src/pages` - Page components for routing
 
-Simply open [Lovable](https://lovable.dev/projects/157b056b-03dc-48ba-8af0-a7710707b685) and click on Share -> Publish.
+## Development
 
-## I want to use a custom domain - is that possible?
+### Available Scripts
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+- `bun run dev` - Start the development server
+- `bun run build` - Build the production version
+- `bun run preview` - Preview the production build locally
+
+## Technologies Used
+
+- **Frontend**:
+  - React
+  - TypeScript
+  - Tailwind CSS
+  - shadcn/ui components
+  - Vite
+
+- **Backend**:
+  - Bun (for WebSocket server)
+
+## License
+
+MIT
