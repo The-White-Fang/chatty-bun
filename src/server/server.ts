@@ -1,4 +1,6 @@
 
+import type { ServerWebSocket, Server } from 'bun';
+
 // Interfaces
 interface ChatMessage {
   id: string;
@@ -10,7 +12,7 @@ interface ChatMessage {
 interface Client {
   id: string;
   name: string;
-  ws: Bun.ServerWebSocket<unknown>;
+  ws: ServerWebSocket<unknown>;
 }
 
 // In-memory storage
@@ -31,7 +33,7 @@ const broadcast = (data: any) => {
 };
 
 // Handle new WebSocket connection
-function handleWebSocketConnection(ws: Bun.ServerWebSocket<unknown>) {
+function handleWebSocketConnection(ws: ServerWebSocket<unknown>) {
   let clientId = generateId();
   let clientName = `Guest-${clientId.substring(0, 4)}`;
 
@@ -79,7 +81,7 @@ function handleWebSocketConnection(ws: Bun.ServerWebSocket<unknown>) {
 }
 
 // Message handler function
-function handleMessage(ws: Bun.ServerWebSocket<unknown>, message: string | Uint8Array) {
+function handleMessage(ws: ServerWebSocket<unknown>, message: string | Uint8Array) {
   try {
     const data = JSON.parse(message as string);
     const clientId = (ws.data as any)?.clientId;
@@ -129,7 +131,7 @@ function handleMessage(ws: Bun.ServerWebSocket<unknown>, message: string | Uint8
 }
 
 // Create and start server
-export function startChatServer(port: number = 3000): Bun.Server {
+export function startChatServer(port: number = 3000): Server {
   return Bun.serve({
     port,
     fetch(req, server) {
