@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useChat } from "@/context/ChatContext";
 import { Button } from "@/components/ui/button";
@@ -12,16 +11,27 @@ const UsernameModal: React.FC = () => {
 
   // Show modal when connected and no username is set
   useEffect(() => {
+    // Check if username is already saved in localStorage
+    const savedUsername = localStorage.getItem("chatUsername");
+    
     if (connected && currentUser) {
-      setName(currentUser.name);
-      setShowModal(true);
+      if (savedUsername) {
+        // If we have a saved username, set it without showing modal
+        setUsername(savedUsername);
+      } else {
+        // Otherwise show the modal with current name
+        setName(currentUser.name);
+        setShowModal(true);
+      }
     }
-  }, [connected, currentUser]);
+  }, [connected, currentUser, setUsername]);
 
   // Handle submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim()) {
+      // Save username to localStorage to persist across sessions
+      localStorage.setItem("chatUsername", name);
       setUsername(name);
       setShowModal(false);
     }
