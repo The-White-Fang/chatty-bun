@@ -96,6 +96,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userId: null,
     connected: false,
   });
+  const [reconnectAttempt, setReconnectAttempt] = useState(0);
 
   const currentUser = state.userId
     ? state.users.find((user) => user.id === state.userId) || null
@@ -103,6 +104,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Connect to WebSocket
   useEffect(() => {
+    // Prevent reconnection attempts if we already have a connection
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      return;
+    }
+
     // Use window.location to determine the WebSocket URL
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.hostname}:3000`;
@@ -111,7 +117,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     ws.addEventListener("open", () => {
       dispatch({ type: "SET_CONNECTION_STATUS", payload: true });
-      toast.success("Connected to chat server");
+      if (reconnectAttempt > 0) {
+        toast.success("Reconnected to chat server");
+      } else {
+        toast.success("Connected to chat server");
+      }
+      setReconnectAttempt(0);
     });
 
     ws.addEventListener("message", (event) => {
@@ -161,18 +172,32 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     ws.addEventListener("close", () => {
-      dispatch({ type: "SET_CONNECTION_STATUS", payload: false });
-      toast.error("Disconnected from chat server");
-      
-      // Try to reconnect after a delay
-      setTimeout(() => {
-        toast.info("Attempting to reconnect...");
-      }, 3000);
+      if (state.connected) {
+        dispatch({ type: "SET_CONNECTION_STATUS", payload: false });
+        toast.error("Disconnected from chat server");
+        
+        // Only attempt reconnection if we were previously connected
+        const nextAttempt = reconnectAttempt + 1;
+        setReconnectAttempt(nextAttempt);
+        
+        // Implement exponential backoff for reconnection
+        const delay = Math.min(Math.pow(2, nextAttempt) * 1000, 30000);
+        
+        setTimeout(() => {
+          // Don't show multiple "attempting to reconnect" messages
+          if (nextAttempt < 5) {
+            toast.info("Attempting to reconnect...");
+          }
+        }, delay);
+      }
     });
 
     ws.addEventListener("error", (error) => {
       console.error("WebSocket error:", error);
-      toast.error("Connection error");
+      // Only show error once, not on every reconnect attempt
+      if (reconnectAttempt === 0) {
+        toast.error("Connection error");
+      }
     });
 
     setSocket(ws);
@@ -181,7 +206,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       ws.close();
     };
-  }, []);
+  }, [reconnectAttempt]);
 
   // Send message function
   const sendMessage = (content: string) => {

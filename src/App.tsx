@@ -14,7 +14,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <LazyMotion features={domAnimation}>
       <TooltipProvider>
-        <Toaster />
+        {/* Using only one toaster to avoid conflicts */}
         <Sonner />
         <BrowserRouter>
           <Routes>
