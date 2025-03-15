@@ -7,9 +7,11 @@ A real-time chat application built with React, TypeScript, and Bun's WebSocket s
 
 - Real-time messaging using WebSocket
 - User presence tracking (join/leave notifications)
-- Username customization
+- Username customization with persistence
+- Toast notifications for user events
 - Persistent message history (server-side, up to 500 messages)
 - Modern UI with dark/light mode support
+- Responsive design
 
 ## Prerequisites
 
@@ -61,6 +63,13 @@ powershell -c "irm bun.sh/install.ps1 | iex"
 - `/src/hooks` - Custom React hooks
 - `/src/pages` - Page components for routing
 
+## Key Features Implementation
+
+- **Username Persistence**: Usernames are saved in localStorage to prevent prompting on every visit
+- **Real-time Communication**: WebSocket connection maintains real-time communication
+- **User Events**: Join/leave notifications and username changes are broadcast to all users
+- **Message History**: Server keeps track of the last 500 messages
+
 ## Development
 
 ### Available Scripts
@@ -84,3 +93,13 @@ powershell -c "irm bun.sh/install.ps1 | iex"
 ## License
 
 MIT
+
+## Project Status
+
+This project is actively maintained. After making changes, remember to commit them:
+
+```bash
+git add .
+git commit -m "Your commit message"
+git push
+```
