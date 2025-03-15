@@ -1,6 +1,4 @@
 
-import { Server } from "bun";
-
 // Interfaces
 interface ChatMessage {
   id: string;
@@ -12,7 +10,7 @@ interface ChatMessage {
 interface Client {
   id: string;
   name: string;
-  ws: WebSocket;
+  ws: Bun.ServerWebSocket<unknown>;
 }
 
 // In-memory storage
@@ -33,7 +31,7 @@ const broadcast = (data: any) => {
 };
 
 // Handle new WebSocket connection
-function handleWebSocketConnection(ws: WebSocket) {
+function handleWebSocketConnection(ws: Bun.ServerWebSocket<unknown>) {
   let clientId = generateId();
   let clientName = `Guest-${clientId.substring(0, 4)}`;
 
@@ -59,54 +57,13 @@ function handleWebSocketConnection(ws: WebSocket) {
   });
 
   // Handle incoming messages
-  ws.addEventListener("message", (event) => {
-    try {
-      const data = JSON.parse(event.data as string);
-
-      switch (data.type) {
-        case "message": {
-          // Create new message
-          const message: ChatMessage = {
-            id: generateId(),
-            sender: clientId,
-            content: data.content,
-            timestamp: Date.now(),
-          };
-
-          // Store and broadcast message
-          messages.push(message);
-          if (messages.length > 500) messages.shift(); // Limit storage
-          
-          broadcast({
-            type: "new-message",
-            data: message,
-          });
-          break;
-        }
-        
-        case "set-name": {
-          // Update client name
-          const client = clients.find((c) => c.id === clientId);
-          if (client) {
-            const oldName = client.name;
-            client.name = data.name;
-            
-            // Notify all clients about name change
-            broadcast({
-              type: "user-renamed",
-              data: { id: clientId, oldName, newName: data.name },
-            });
-          }
-          break;
-        }
-      }
-    } catch (error) {
-      console.error("Error processing message:", error);
-    }
-  });
+  ws.data = {
+    clientId,
+    clientName
+  };
 
   // Handle client disconnection
-  ws.addEventListener("close", () => {
+  ws.onclose = () => {
     // Remove client from list
     const index = clients.findIndex((c) => c.id === clientId);
     if (index !== -1) {
@@ -118,11 +75,61 @@ function handleWebSocketConnection(ws: WebSocket) {
         data: { id: clientId },
       });
     }
-  });
+  };
+}
+
+// Message handler function
+function handleMessage(ws: Bun.ServerWebSocket<unknown>, message: string | Uint8Array) {
+  try {
+    const data = JSON.parse(message as string);
+    const clientId = (ws.data as any)?.clientId;
+    
+    if (!clientId) return;
+    
+    switch (data.type) {
+      case "message": {
+        // Create new message
+        const message: ChatMessage = {
+          id: generateId(),
+          sender: clientId,
+          content: data.content,
+          timestamp: Date.now(),
+        };
+
+        // Store and broadcast message
+        messages.push(message);
+        if (messages.length > 500) messages.shift(); // Limit storage
+        
+        broadcast({
+          type: "new-message",
+          data: message,
+        });
+        break;
+      }
+      
+      case "set-name": {
+        // Update client name
+        const client = clients.find((c) => c.id === clientId);
+        if (client) {
+          const oldName = client.name;
+          client.name = data.name;
+          
+          // Notify all clients about name change
+          broadcast({
+            type: "user-renamed",
+            data: { id: clientId, oldName, newName: data.name },
+          });
+        }
+        break;
+      }
+    }
+  } catch (error) {
+    console.error("Error processing message:", error);
+  }
 }
 
 // Create and start server
-export function startChatServer(port: number = 3000): Server {
+export function startChatServer(port: number = 3000): Bun.Server {
   return Bun.serve({
     port,
     fetch(req, server) {
@@ -136,11 +143,9 @@ export function startChatServer(port: number = 3000): Server {
     },
     websocket: {
       open: handleWebSocketConnection,
-      message(ws, message) {
-        // Message handling is done in the open handler
-      },
+      message: handleMessage,
       close(ws, code, message) {
-        // Close handling is done in the open handler's close event listener
+        // Close handling is already done in the open handler
       },
     },
   });
